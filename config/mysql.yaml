@@ -1,0 +1,9 @@
+host: "127.0.0.1"
+port: 3306
+user: "root"
+password: "replace-with-password"
+database: "replace-with-database"
+charset: "utf8mb4"
+connect_timeout: 10
+read_timeout: 10
+write_timeout: 10

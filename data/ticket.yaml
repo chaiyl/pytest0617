@@ -1,0 +1,6 @@
+scenarios:
+  - name: get_success
+    payload:
+      ticketId: "3a202efb-e00b-41af-3e74-3e58a02ace20"
+    expected_code: 200
+    expected_success: true

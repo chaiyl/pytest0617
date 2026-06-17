@@ -1,0 +1,83 @@
+users:
+  alice:
+    id: 1001
+    password: "Alice@123"
+    locked: false
+  bob:
+    id: 1002
+    password: "Bob@123"
+    locked: true
+
+scenarios:
+  - name: login_success
+    payload:
+      username: "alice"
+      password: "Alice@123"
+    expected_status: 200
+    expected_code: "OK"
+
+  - name: missing_body
+    payload: null
+    expected_status: 400
+    expected_code: "INVALID_REQUEST"
+
+  - name: missing_username
+    payload:
+      password: "Alice@123"
+    expected_status: 400
+    expected_code: "USERNAME_REQUIRED"
+
+  - name: empty_username
+    payload:
+      username: ""
+      password: "Alice@123"
+    expected_status: 400
+    expected_code: "USERNAME_REQUIRED"
+
+  - name: missing_password
+    payload:
+      username: "alice"
+    expected_status: 400
+    expected_code: "PASSWORD_REQUIRED"
+
+  - name: empty_password
+    payload:
+      username: "alice"
+      password: ""
+    expected_status: 400
+    expected_code: "PASSWORD_REQUIRED"
+
+  - name: unknown_user
+    payload:
+      username: "charlie"
+      password: "Charlie@123"
+    expected_status: 401
+    expected_code: "INVALID_CREDENTIALS"
+
+  - name: wrong_password
+    payload:
+      username: "alice"
+      password: "Wrong@123"
+    expected_status: 401
+    expected_code: "INVALID_CREDENTIALS"
+
+  - name: locked_account
+    payload:
+      username: "bob"
+      password: "Bob@123"
+    expected_status: 423
+    expected_code: "ACCOUNT_LOCKED"
+
+  - name: invalid_username_type
+    payload:
+      username: 123
+      password: "Alice@123"
+    expected_status: 400
+    expected_code: "INVALID_FIELD_TYPE"
+
+  - name: invalid_password_type
+    payload:
+      username: "alice"
+      password: 123
+    expected_status: 400
+    expected_code: "INVALID_FIELD_TYPE"

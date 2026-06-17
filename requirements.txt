@@ -1,0 +1,6 @@
+pytest>=8.0.0
+pytest-html>=4.1.1
+pytest-rerunfailures>=14.0
+pyyaml>=6.0.1
+requests>=2.31.0
+pymysql>=1.1.0
