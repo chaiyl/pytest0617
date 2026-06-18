@@ -106,7 +106,23 @@ def mysql_client(mysql_config: dict) -> MySqlClient:
 
 @pytest.fixture
 def data_recovery(api_client: HttpClient, logger) -> DataRecovery:
-    """Collect cleanup actions during one test and run them after that test."""
+    """Collect API cleanup actions during one test and run them after that test."""
     recovery = DataRecovery(api_client=api_client, logger=logger)
+    yield recovery
+    recovery.run()
+
+
+@pytest.fixture
+def db_data_recovery(db_client: DatabaseClient, logger) -> DataRecovery:
+    """Collect SQLite cleanup actions during one test and run them after that test."""
+    recovery = DataRecovery(db_client=db_client, logger=logger)
+    yield recovery
+    recovery.run()
+
+
+@pytest.fixture
+def mysql_data_recovery(mysql_client: MySqlClient, logger) -> DataRecovery:
+    """Collect MySQL cleanup actions during one test and run them after that test."""
+    recovery = DataRecovery(db_client=mysql_client, logger=logger)
     yield recovery
     recovery.run()

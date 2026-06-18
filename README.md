@@ -199,6 +199,8 @@ login_client    登录 demo mock 客户端
 db_client       SQLite 数据库客户端
 mysql_client    MySQL 数据库客户端
 data_recovery   数据恢复工具
+db_data_recovery SQLite 数据恢复工具
+mysql_data_recovery MySQL 数据恢复工具
 logger          日志对象
 ```
 
@@ -395,6 +397,14 @@ tests/conftest.py
 
 用例中通过 `data_recovery` 登记清理动作。用例结束后，fixture 会自动执行恢复逻辑。
 
+当前支持两类恢复方式：
+
+```text
+data_recovery        通过接口恢复数据
+db_data_recovery     通过 SQLite SQL 恢复数据
+mysql_data_recovery  通过 MySQL SQL 恢复数据
+```
+
 新增数据后删除：
 
 ```python
@@ -438,6 +448,78 @@ tests/api/test_data_recovery_example.py
 ```
 
 该文件默认 `skip`，需要替换成真实新增、删除、查询、更新接口后再启用。
+
+### 通过数据库恢复数据
+
+数据库恢复适合没有清理接口、接口清理不方便，或者需要直接恢复底层字段的场景。
+
+SQLite 示例：
+
+```python
+def test_create_resource_with_db_recovery(db_client, db_data_recovery):
+    resource_id = "replace-with-real-id"
+
+    db_client.execute(
+        "insert into resources (id, name) values (?, ?)",
+        [resource_id, "pytest_auto_test_resource"],
+    )
+
+    db_data_recovery.delete_created_by_sql(
+        sql="delete from resources where id = ?",
+        params=[resource_id],
+        name=f"delete resource {resource_id} by sql",
+    )
+```
+
+修改数据后恢复旧值：
+
+```python
+def test_update_resource_with_db_recovery(db_client, db_data_recovery):
+    resource_id = "replace-with-real-id"
+
+    before = db_client.fetch_one("select * from resources where id = ?", [resource_id])
+    old_name = before["name"]
+
+    db_client.execute(
+        "update resources set name = ? where id = ?",
+        ["pytest_updated_name", resource_id],
+    )
+
+    db_data_recovery.restore_updated_by_sql(
+        sql="update resources set name = ? where id = ?",
+        params=[old_name, resource_id],
+        name=f"restore resource {resource_id} by sql",
+    )
+```
+
+MySQL 用法类似，但 SQL 占位符使用 `%s`：
+
+```python
+def test_update_resource_with_mysql_recovery(mysql_client, mysql_data_recovery):
+    resource_id = "replace-with-real-id"
+
+    before = mysql_client.fetch_one("select * from resources where id = %s", [resource_id])
+    old_name = before["name"]
+
+    mysql_client.execute(
+        "update resources set name = %s where id = %s",
+        ["pytest_updated_name", resource_id],
+    )
+
+    mysql_data_recovery.restore_updated_by_sql(
+        sql="update resources set name = %s where id = %s",
+        params=[old_name, resource_id],
+        name=f"restore resource {resource_id} by sql",
+    )
+```
+
+示例文件：
+
+```text
+tests/api/test_db_data_recovery_example.py
+```
+
+数据库恢复动作同样会在用例结束后反向执行，后登记的恢复动作会先执行。
 
 ## SQLite 数据库访问
 
